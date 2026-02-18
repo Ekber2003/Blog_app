@@ -1,10 +1,10 @@
-import { Injectable, UnauthorizedException } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
-import { UsersService } from "src/users/users.service";
-import { LoginDto } from "./dto/login.dto";
-import { RegisterDto } from "./dto/register.dto";
-import { Role } from "src/users/entities/user.etity";
-import * as bcrypt from 'bcryptjs'
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { UsersService } from 'src/users/users.service';
+import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
+import { Role } from 'src/users/entities/user.etity';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class AuthService {
@@ -14,18 +14,23 @@ export class AuthService {
   ) {}
 
   async login(dto: LoginDto) {
-    // 1. İstifadəçini yalnız email-ə görə tapırıq
+    // Email ilə istifadəçini tap və parolu da gətir
     const user = await this.userService.findOne({
-      // Sənin LoginDto-da username yoxdur, ona görə birbaşa email-lə axtarırıq
-      where: { email: dto.email }, 
-      select: ['id', 'password', 'username', 'email', 'role'], 
+      where: { email: dto.email },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        password: true, // ✅ Parolu da seç
+        role: true,
+      },
     });
 
     if (!user) {
       throw new UnauthorizedException('Email və ya parol səhvdir');
     }
 
-    // 2. Parol yoxlanışı
+    // Parol yoxlanışı
     const passwordValid = await bcrypt.compare(dto.password, user.password);
     if (!passwordValid) {
       throw new UnauthorizedException('Email və ya parol səhvdir');
@@ -37,15 +42,20 @@ export class AuthService {
   async register(dto: RegisterDto) {
     const user = await this.userService.create({
       ...dto,
-      role: [Role.USER],
+      role: [Role.USER], // Default olaraq USER rolu
     });
 
     return this.generateToken(user);
   }
 
-  private async generateToken(user: any) {
-    const payload = { userId: user.id, role: user.role };
-    const token = await this.jwtService.signAsync(payload);
+  private generateToken(user: any) {
+    const payload = { 
+      userId: user.id, 
+      role: user.role,
+      email: user.email, // ✅ Email də əlavə edək
+    };
+    
+    const token = this.jwtService.sign(payload);
 
     return {
       user: {
@@ -54,7 +64,7 @@ export class AuthService {
         email: user.email,
         role: user.role,
       },
-      token,
+      access_token: token, // ✅ Standart adlandırma
     };
   }
 }

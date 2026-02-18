@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, Post } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -7,6 +7,8 @@ import { ClsGuard, ClsModule } from 'nestjs-cls';
 import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { SeedsModule } from './database/seeds/seeds.module';
+import { PostModule } from './post/post.module';
 
 @Module({
   imports: [
@@ -18,7 +20,8 @@ import { AuthModule } from './auth/auth.module';
 
     AuthModule,
     UsersModule,
-
+    PostModule,
+    SeedsModule, // ✅ Super Admin avtomatik yaranacaq
     ClsModule.forRoot({
       global: true,
       middleware: { mount: true },

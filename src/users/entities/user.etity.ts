@@ -3,27 +3,28 @@ import { CommonEntity } from 'src/common/common.entity';
 import { Post } from 'src/post/post.entity';
 import { Comment } from 'src/comment/comment.entity';
 
-// Role Enumunu təyin edək (məsələn: user.entity.ts faylında və ya ayrıca)
 export enum Role {
   USER = 'user',
+  AUTHOR = 'author',
   ADMIN = 'admin',
+  SUPER_ADMIN = 'super_admin',
 }
 
 @Entity('users')
 export class User extends CommonEntity {
   @Column()
-  username: string; // DTO-da username olduğu üçün bura da username olsun
+  username: string;
 
   @Column({ unique: true })
   email: string;
 
-  @Column({ select: false }) // Təhlükəsizlik üçün: API sorğularında parolu gizlədir
+  @Column({ select: false })
   password: string;
 
   @Column({
     type: 'enum',
     enum: Role,
-    array: true, // Əgər istifadəçinin bir neçə rolu ola bilərsə (DTO-da massiv demisən)
+    array: true,
     default: [Role.USER],
   })
   role: Role[];

@@ -12,12 +12,18 @@ export class RolesGuard implements CanActivate {
       context.getHandler(),
       context.getClass(),
     ]);
-    
-    if (!requiredRoles) {
-      return true;
+
+    if (!requiredRoles || requiredRoles.length === 0) {
+      return true; // Rol tələb olunmursa, icazə ver
     }
-    
+
     const { user } = context.switchToHttp().getRequest();
-    return requiredRoles.some((role) => user.role?.includes(role));
+
+    if (!user || !user.role) {
+      return false; // İstifadəçi və ya rol yoxdursa, icazə vermə
+    }
+
+    // ✅ İstifadəçinin rolllarından ən azı biri tələb olunan rollardan biridir?
+    return requiredRoles.some((role) => user.role.includes(role));
   }
 }
