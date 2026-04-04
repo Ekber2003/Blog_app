@@ -2,12 +2,30 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
+import * as fs from 'fs';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   // CORS
   app.enableCors();
+
+    // ✅ Uploads qovluqlarını yarat
+  const uploadsDir = join(__dirname, '..', 'uploads');
+  const avatarsDir = join(uploadsDir, 'avatars');
+  
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir);
+  }
+  if (!fs.existsSync(avatarsDir)) {
+    fs.mkdirSync(avatarsDir);
+  }
+  // Static files (uploads folder)
+  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+    prefix: '/uploads/',
+  });
 
   // Global Validation Pipe
   app.useGlobalPipes(
@@ -18,7 +36,7 @@ async function bootstrap() {
     }),
   );
 
-  // Swagger konfiqurasiyası
+  // Swagger
   const config = new DocumentBuilder()
     .setTitle('Blog API')
     .setDescription('Blog platforması üçün REST API dokumentasiyası')
@@ -27,6 +45,7 @@ async function bootstrap() {
     .addTag('Users', 'İstifadəçi idarəetməsi')
     .addTag('Posts', 'Post əməliyyatları')
     .addTag('Comments', 'Şərh əməliyyatları')
+    .addTag('Upload', 'Fayl yükləmə') // ✅
     .addBearerAuth(
       {
         type: 'http',
@@ -36,7 +55,7 @@ async function bootstrap() {
         description: 'JWT token daxil edin',
         in: 'header',
       },
-      'JWT-auth', // Bu adı controller-lərdə istifadə edəcəyik
+      'JWT-auth',
     )
     .build();
 

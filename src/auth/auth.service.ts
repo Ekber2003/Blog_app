@@ -14,29 +14,37 @@ export class AuthService {
   ) {}
 
   async login(dto: LoginDto) {
-    // Email ilə istifadəçini tap və parolu da gətir
-    const user = await this.userService.findOne({
-      where: { email: dto.email },
-      select: {
-        id: true,
-        username: true,
-        email: true,
-        password: true, // ✅ Parolu da seç
-        role: true,
-      },
-    });
-
+    // ✅ userService.findByEmail istifadə edin
+    const user = await this.userService.findByEmail(dto.email);
+    
     if (!user) {
       throw new UnauthorizedException('Email və ya parol səhvdir');
     }
 
-    // Parol yoxlanışı
-    const passwordValid = await bcrypt.compare(dto.password, user.password);
-    if (!passwordValid) {
+    const isPasswordValid = await bcrypt.compare(dto.password, user.password);
+    
+    if (!isPasswordValid) {
       throw new UnauthorizedException('Email və ya parol səhvdir');
     }
 
-    return this.generateToken(user);
+    const payload = { 
+      userId: user.id, 
+      username: user.username,
+      email: user.email,
+      role: user.role,
+    };
+
+    const { password, ...result } = user;
+
+    // ✅ Tarixləri ISO string formatında göndər
+    return {
+      user: {
+        ...result,
+        createdAt: result.createdAt ? result.createdAt.toISOString() : new Date().toISOString(),
+        updatedAt: result.updatedAt ? result.updatedAt.toISOString() : new Date().toISOString(),
+      },
+      access_token: this.jwtService.sign(payload),
+    };
   }
 
   async register(dto: RegisterDto) {
@@ -51,8 +59,9 @@ export class AuthService {
   private generateToken(user: any) {
     const payload = { 
       userId: user.id, 
+      username: user.username,
       role: user.role,
-      email: user.email, // ✅ Email də əlavə edək
+      email: user.email,
     };
     
     const token = this.jwtService.sign(payload);
@@ -63,8 +72,10 @@ export class AuthService {
         username: user.username,
         email: user.email,
         role: user.role,
+        createdAt: user.createdAt ? user.createdAt : new Date().toISOString(),
+        updatedAt: user.updatedAt ? user.updatedAt : new Date().toISOString(),
       },
-      access_token: token, // ✅ Standart adlandırma
+      access_token: token,
     };
   }
 }

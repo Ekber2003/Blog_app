@@ -29,6 +29,13 @@ export class User extends CommonEntity {
   })
   role: Role[];
 
+    // ✅ YENİ: Avatar
+  @Column({ nullable: true })
+  avatar?: string;
+
+  // ✅ YENİ: Bio
+  @Column({ type: 'text', nullable: true })
+  bio?: string;
   @OneToMany(() => Post, (post) => post.author)
   posts: Post[];
 

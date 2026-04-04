@@ -7,30 +7,29 @@ import { UsersService } from 'src/users/users.service';
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
-    private usersService: UsersService,
-    private configService: ConfigService,
+    private readonly configService: ConfigService,
+    private readonly usersService: UsersService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ignoreExpiration: false,
       secretOrKey: configService.get<string>('JWT_SECRET'),
     });
   }
 
   async validate(payload: any) {
-    // Token-dən istifadəçini tap
-    const user = await this.usersService.findOne({
-      where: { id: payload.userId },
-    });
+    // ✅ findOne yalnız id (string) qəbul edir
+    const user = await this.usersService.findOne(payload.userId);
 
     if (!user) {
       throw new UnauthorizedException('İstifadəçi tapılmadı');
     }
 
-    // ✅ req.user = { userId, role, email }
     return { 
       userId: user.id, 
-      role: user.role,
+      username: user.username, 
       email: user.email,
+      role: user.role 
     };
   }
 }

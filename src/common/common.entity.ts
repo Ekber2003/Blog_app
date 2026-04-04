@@ -10,8 +10,8 @@ export abstract class CommonEntity extends BaseEntity {
   id: string;
 
   @CreateDateColumn()
-  created_at: Date;
+  createdAt: Date;
 
   @UpdateDateColumn({ default: null })
-  updated_at: Date;
+  updatedAt: Date;
 }

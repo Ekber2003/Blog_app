@@ -39,6 +39,7 @@
     "class-validator": "^0.14.1",
     "date-fns": "^3.6.0",
     "dotenv": "^16.4.5",
+    "multer": "^2.0.2",
     "nestjs-cls": "^4.4.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
